@@ -1,4 +1,3 @@
-import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { sanityClient } from '@/sanity/lib/client';
@@ -47,44 +46,88 @@ interface Blog {
   conclusion?: any[];
 }
 
-async function BlogContent({ params }: { params: { id: string } }) {
-  // Properly await params before accessing its properties
-  const resolvedParams = await Promise.resolve(params);
-  const id = resolvedParams?.id;
+// Fixed type compatible with Next.js 15
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { blogNumber: string } 
+  searchParams?: Record<string, string | string[] | undefined>
+}) {
+  const blogNumber = Number(params.blogNumber);
   
-  if (!id) return notFound();
-
-  let blog: Blog | null = null;
-  
-  try {
-    blog = await sanityClient.fetch<Blog>(
-      `*[_type == "blog" && _id == $id][0]{
-        _id,
-        blogNumber,
-        title,
-        arabicAyah,
-        translation,
-        media[] {
-          _type,
-          ...,
-          asset->{ url, mimeType },
-          url
-        },
-        category,
-        tags,
-        publishedAt,
-        introduction,
-        scientificValidation,
-        reflection,
-        conclusion
-      }`,
-      { id }
-    );
-  } catch (error) {
-    return notFound();
+  if (isNaN(blogNumber)) {
+    return {
+      title: 'Blog Not Found',
+      description: 'Invalid blog number',
+    };
   }
 
-  if (!blog) return notFound();
+  const blog = await sanityClient.fetch<Blog>(
+    `*[_type == "blog" && blogNumber == $blogNumber][0]{
+      title,
+      introduction,
+      media[] {
+        _type,
+        ...,
+        asset->{ url, mimeType },
+        url
+      }
+    }`,
+    { blogNumber }
+  );
+
+  const firstImage = blog?.media?.find((item): item is SanityImage => item._type === 'image');
+
+  return {
+    title: blog?.title || 'Blog Post',
+    description: blog?.introduction?.[0]?.children?.[0]?.text || 'Islamic blog post',
+    openGraph: {
+      images: firstImage?.asset?.url ? [{ url: firstImage.asset.url }] : [],
+    },
+  };
+}
+
+// Include the searchParams to match Next.js 15 expectations
+export default async function BlogDetailPage({ 
+  params,
+  searchParams 
+}: { 
+  params: { blogNumber: string }
+  searchParams?: Record<string, string | string[] | undefined>
+}) {
+  const blogNumber = Number(params.blogNumber);
+  
+  if (isNaN(blogNumber)) {
+    notFound();
+  }
+
+  const blog = await sanityClient.fetch<Blog>(
+    `*[_type == "blog" && blogNumber == $blogNumber][0]{
+      _id,
+      blogNumber,
+      title,
+      arabicAyah,
+      translation,
+      media[] {
+        _type,
+        ...,
+        asset->{ url, mimeType },
+        url
+      },
+      category,
+      tags,
+      publishedAt,
+      introduction,
+      scientificValidation,
+      reflection,
+      conclusion
+    }`,
+    { blogNumber }
+  );
+
+  if (!blog) {
+    notFound();
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -146,6 +189,7 @@ async function BlogContent({ params }: { params: { id: string } }) {
               </h1>
             </div>
           </header>
+
 
           <article className="px-6 py-8 sm:px-8 sm:py-10">
             {blog.arabicAyah && (
@@ -211,18 +255,6 @@ async function BlogContent({ params }: { params: { id: string } }) {
                               Your browser does not support video playback.
                             </div>
                           </video>
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                            <div className="bg-orange-500/80 p-3 rounded-full backdrop-blur-sm">
-                              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="absolute inset-0 flex items-center justify-center bg-orange-50/50 animate-pulse">
-                          <svg className="w-12 h-12 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
                         </div>
                       </div>
                     );
@@ -299,7 +331,7 @@ async function BlogContent({ params }: { params: { id: string } }) {
 
             <div className="mt-12 pt-8 border-t border-gray-200">
               <Link
-                href={`/category?category=${categorySlug}`}
+                href={`/category`}
                 className="inline-flex items-center bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300 shadow-lg"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -313,38 +345,4 @@ async function BlogContent({ params }: { params: { id: string } }) {
       </div>
     </div>
   );
-}
-
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  // Properly await params before accessing its properties
-  const resolvedParams = await Promise.resolve(params);
-  const id = resolvedParams?.id;
-  
-  const blog = await sanityClient.fetch<Blog>(
-    `*[_type == "blog" && _id == $id][0]{
-      title,
-      introduction,
-      media[] {
-        _type,
-        ...,
-        asset->{ url, mimeType },
-        url
-      }
-    }`,
-    { id }
-  );
-
-  const firstImage = blog?.media?.find((item): item is SanityImage => item._type === 'image');
-
-  return {
-    title: blog?.title || 'Blog Post',
-    description: blog?.introduction?.[0]?.children?.[0]?.text || 'Islamic blog post',
-    openGraph: {
-      images: firstImage?.asset?.url ? [{ url: firstImage.asset.url }] : [],
-    },
-  };
-}
-
-export default async function BlogDetailPage({ params }: { params: { id: string } }) {
-  return <BlogContent params={params} />;
 }

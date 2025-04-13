@@ -4,7 +4,7 @@ import Section02 from "@/component/Section02";
 import Section01 from '@/component/Section01';
 import Section03 from '@/component/Section03';
 import Chatbot from "@/component/ChatBot";
-import Footer from "@/component/Footer";
+
 import { Analytics } from "@vercel/analytics/react";
 
 export default function Home() {

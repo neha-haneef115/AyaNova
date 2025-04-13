@@ -1,7 +1,8 @@
 "use client"
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
 import Header from '@/component/Header';
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaPaperPlane, FaTwitter, FaLinkedin, FaGithub, FaBehance } from 'react-icons/fa';
+import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaPaperPlane, FaLinkedin, FaGithub, FaBehance } from 'react-icons/fa';
 import Link from 'next/link';
 import Footer from '@/component/Footer';
 
@@ -61,8 +62,8 @@ const ContactUs: React.FC = () => {
         const errorData = await response.json();
         console.error('Error:', errorData.error);
       }
-    } catch (error) {
-      console.error('Error:', error);
+    } catch (_error) {
+      console.error('Error occurred during form submission');
     } finally {
       setIsSubmitting(false);
     }

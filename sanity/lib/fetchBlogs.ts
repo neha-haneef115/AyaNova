@@ -1,70 +1,48 @@
 import { sanityClient } from '@/sanity/lib/client';
+import type { Blog } from '@/types/blog';
 
-export async function fetchBlogs() {
-  const query = `*[_type == "blog"] | order(blogNumber asc) {
-    _id,
-    blogNumber,
-    title,
-    arabicAyah,
-    translation,
-    media[]{
-      ...,
-      asset -> { url }
-    },
-    body,
-    category,
-    tags,
-    publishedAt,
-    views,
-    likes,
-    comments
-  }`;
-  
-  return await sanityClient.fetch(query);
+const BLOG_FIELDS = `
+  _id,
+  blogNumber,
+  title,
+  category,
+  publishedAt,
+  arabicAyah,
+  translation,
+  media[] {
+    _type,
+    ...,
+    asset->{ url, mimeType },
+    url
+  },
+  introduction,
+  scientificValidation,
+  reflection,
+  conclusion,
+  tags
+`;
+
+// Fetch single blog by number
+export async function fetchBlogByNumber(blogNumber: number): Promise<Blog | null> {
+  try {
+    return await sanityClient.fetch(
+      `*[_type == "blog" && blogNumber == $blogNumber][0] { ${BLOG_FIELDS} }`,
+      { blogNumber }
+    );
+  } catch (error) {
+    console.error(`Failed to fetch blog ${blogNumber}:`, error);
+    return null;
+  }
 }
 
-export async function fetchBlogsByCategory(category: string) {
-  const query = `*[_type == "blog" && category == $category] | order(blogNumber asc) {
-    _id,
-    blogNumber,
-    title,
-    arabicAyah,
-    translation,
-    media[]{
-      ...,
-      asset -> { url }
-    },
-    body,
-    category,
-    tags,
-    publishedAt,
-    views,
-    likes,
-    comments
-  }`;
-  
-  return await sanityClient.fetch(query, { category });
-}
-
-export async function fetchBlogById(id: string) {
-  const query = `*[_type == "blog" && _id == $id][0]{
-    _id,
-    blogNumber,
-    title,
-    arabicAyah,
-    translation,
-    media[]{
-      ...,
-      asset -> { url }
-    },
-    body,
-    category,
-    tags,
-    publishedAt,
-    views,
-    likes,
-    comments
-  }`;
-  
-  return await sanityClient.fetch(query, { id });
+// Fetch ALL blogs ordered by blogNumber
+export async function fetchAllBlogs(): Promise<Blog[]> {
+  try {
+    return await sanityClient.fetch(
+      `*[_type == "blog"] | order(blogNumber asc) { ${BLOG_FIELDS} }`
+    );
+  } catch (error) {
+    console.error('Failed to fetch blogs:', error);
+    return [];
+  }
 }

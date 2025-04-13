@@ -1,7 +1,7 @@
 "use client"
 import React from 'react';
 import Header from '@/component/Header';
-import { FaGlobe, FaBook, FaStar, FaCode, FaUserAstronaut, FaEnvelope } from 'react-icons/fa';
+import { FaGlobe, FaBook, FaStar, FaCode, FaUserAstronaut} from 'react-icons/fa';
 import Footer from '@/component/Footer';
 const AboutUs = () => {
   return (

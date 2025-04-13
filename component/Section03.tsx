@@ -1,16 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import Footer from "./Footer";
 
 const CategorySection = () => {
-  const [isLoaded, setIsLoaded] = useState(false);
   const [totalVerses, setTotalVerses] = useState(0);
   const router = useRouter();
 
   useEffect(() => {
-    setIsLoaded(true);
     setTotalVerses(categories.reduce((sum, category) => sum + category.verses, 0));
     
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -30,6 +27,7 @@ const CategorySection = () => {
   };
 
   const handleCategoryClick = (slug: string) => {
+    router.prefetch(`/category?category=${slug}`);
     router.push(`/category?category=${slug}`);
   };
 
@@ -80,12 +78,7 @@ const CategorySection = () => {
     <div id="section03" className="relative min-h-screen">
       <section className="bg-gradient-to-b from-gray-900 via-gray-900 to-black pt-6 px-2 sm:px-4">
         <div className="max-w-4xl mx-auto pb-20">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : -20 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-8"
-          >
+          <div className="text-center mb-8">
             <div className="inline-block relative mb-4">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 opacity-20 blur-xl rounded-full transform scale-150"></div>
               <h1 className="relative text-3xl sm:text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-400 py-2">
@@ -97,37 +90,24 @@ const CategorySection = () => {
                 {totalVerses} Scientifically Justified Verses
               </div>
             </div>
-          </motion.div>
+          </div>
 
           <div className="space-y-3">
             {categories.map((category, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 20 }}
-                transition={{ delay: index * 0.15, duration: 0.6 }}
-                className="rounded-lg shadow-lg relative"
-              >
-                <motion.div
+              <div key={index} className="rounded-lg shadow-lg relative">
+                <div
                   className={`bg-gradient-to-r ${category.color} p-4 cursor-pointer relative after:absolute after:inset-0 after:opacity-0 hover:after:opacity-100 after:transition-opacity after:duration-700 ${category.bgGlow}`}
                   onClick={() => handleCategoryClick(category.slug)}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
                 >
                   <div className="absolute top-0 right-0 opacity-10 text-6xl -mt-4 -mr-4 filter blur-sm">
                     {category.emoji}
                   </div>
                   <div className="flex justify-between items-center">
                     <div>
-                      <motion.h2
-                        className={`text-lg font-bold ${category.textColor} flex items-center`}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.15 + 0.2 }}
-                      >
+                      <h2 className={`text-lg font-bold ${category.textColor} flex items-center`}>
                         <span className="mr-2 text-xl">{category.emoji}</span>
                         {category.title}
-                      </motion.h2>
+                      </h2>
                       <div className="mt-1 text-white/70 flex items-center text-xs">
                         <span className="text-white font-semibold">
                           {category.verses}
@@ -145,8 +125,8 @@ const CategorySection = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
