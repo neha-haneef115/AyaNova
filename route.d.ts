@@ -1,11 +1,12 @@
-// This file helps define types for dynamic routes in Next.js App Router
+// route.d.ts
+import type { ReadonlyURLSearchParams } from 'next/navigation';
+
 declare namespace JSX {
-    interface IntrinsicAttributes {
-      params?: {
-        [key: string]: string;
-      };
-      searchParams?: {
-        [key: string]: string | string[] | undefined;
-      };
-    }
+  interface IntrinsicAttributes {
+    params?: Promise<{
+      [key: string]: string;
+    }>;
+    searchParams?: Promise<ReadonlyURLSearchParams> | 
+                  Promise<{ [key: string]: string | string[] | undefined }>;
   }
+}

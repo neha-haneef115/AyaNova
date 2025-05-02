@@ -12,7 +12,23 @@ interface Blog {
   publishedAt: string;
 }
 
-const CATEGORY_COLORS = {
+interface Category {
+  name: string;
+  count: number;
+  slug: string;
+}
+
+interface CategoryColors {
+  [key: string]: {
+    bg: string;
+    text: string;
+    border: string;
+    hover: string;
+    highlight: string;
+  };
+}
+
+const CATEGORY_COLORS: CategoryColors = {
   'celestial-bodies-and-motion': {
     bg: 'bg-gradient-to-br from-purple-900/30 to-purple-800/30',
     text: 'text-purple-200',
@@ -41,9 +57,11 @@ const CATEGORY_COLORS = {
     hover: 'hover:from-red-900/40 hover:to-red-800/40',
     highlight: 'bg-red-700/50'
   }
-} as const;
+};
 
-const generateSlug = (text: string): string => {
+const generateSlug = (text: string | undefined): string => {
+  if (!text) return '';
+  
   return text
     .toLowerCase()
     .replace(/&/g, 'and')
@@ -52,19 +70,22 @@ const generateSlug = (text: string): string => {
     .trim();
 };
 
-export default async function CategoryPage({ 
-  searchParams 
-}: { 
-  searchParams: Promise<{ category?: string }> | { category?: string }
-}) {
-  // Await searchParams before accessing its properties
-  const params = await searchParams;
-  const category = params?.category;
+interface PageProps {
+  searchParams: Promise<{
+    [key: string]: string | string[] | undefined;
+    category?: string;
+  }>;
+}
 
+export default async function CategoryPage({ searchParams }: PageProps) {
+  // Await the searchParams promise
+  const resolvedSearchParams = await searchParams;
+  const category = resolvedSearchParams?.category as string | undefined;
+  
   try {
     const allBlogs = await fetchAllBlogs();
     
-    const categories = allBlogs.reduce((acc: {name: string, count: number, slug: string}[], blog) => {
+    const categories = allBlogs.reduce((acc: Category[], blog) => {
       if (!blog.category) return acc;
       
       const slug = generateSlug(blog.category);
@@ -113,7 +134,7 @@ export default async function CategoryPage({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
             {categories.map((cat) => {
-              const color = CATEGORY_COLORS[cat.slug as keyof typeof CATEGORY_COLORS] || {
+              const color = CATEGORY_COLORS[cat.slug] || {
                 bg: 'bg-gradient-to-br from-gray-900/30 to-gray-800/30',
                 text: 'text-gray-300',
                 border: 'border-gray-600',
@@ -170,7 +191,7 @@ export default async function CategoryPage({
               <div className="space-y-4">
                 {displayedBlogs.map(blog => {
                   const categorySlug = generateSlug(blog.category);
-                  const color = CATEGORY_COLORS[categorySlug as keyof typeof CATEGORY_COLORS] || {
+                  const color = CATEGORY_COLORS[categorySlug] || {
                     text: 'text-gray-300',
                     bg: 'bg-gray-800/50',
                     border: 'border-gray-700',

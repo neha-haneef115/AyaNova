@@ -1,7 +1,6 @@
 // types/blog.ts
 import { PortableTextBlock } from '@portabletext/types';
 
-
 export interface SanityAsset {
   _type: string;
   asset: {
@@ -26,11 +25,14 @@ export interface SanityYoutube {
   url: string;
 }
 
-export type MediaItem = SanityImage | SanityFile | SanityYoutube;
+export type MediaItem = 
+  | { _type: 'image'; asset: { _ref: string; _type: 'reference'; url: string } }
+  | { _type: 'file'; asset: { _ref: string; _type: 'reference'; url: string; mimeType: string } }
+  | { _type?: 'object' | null; url: string };
 
 export interface Blog {
   _id: string;
-  _createdAt: string;
+  _createdAt?: string;
   blogNumber: number;
   title: string;
   arabicAyah?: string;
