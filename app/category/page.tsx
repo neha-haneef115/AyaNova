@@ -70,17 +70,13 @@ const generateSlug = (text: string | undefined): string => {
     .trim();
 };
 
-interface PageProps {
-  searchParams: Promise<{
-    [key: string]: string | string[] | undefined;
-    category?: string;
-  }>;
-}
-
-export default async function CategoryPage({ searchParams }: PageProps) {
-  // Await the searchParams promise
-  const resolvedSearchParams = await searchParams;
-  const category = resolvedSearchParams?.category as string | undefined;
+export default async function Page({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  // Access category from searchParams
+  const category = typeof searchParams?.category === 'string' ? searchParams.category : undefined;
   
   try {
     const allBlogs = await fetchAllBlogs();

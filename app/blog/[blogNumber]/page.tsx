@@ -29,12 +29,12 @@ interface Blog {
 
 // Fixed PageProps type for Next.js 15
 interface PageProps {
-  params: {
+  params: Promise<{
     blogNumber: string;
-  };
-  searchParams?: {
+  }>;
+  searchParams?: Promise<{
     [key: string]: string | string[] | undefined;
-  };
+  }>;
 }
 
 // Helper Components
@@ -112,7 +112,7 @@ function MediaItemRenderer({ item, title }: { item: MediaItem; title: string }) 
   }
 
   if ('url' in item && item.url) {
-    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = item.url.match(youtubeRegex);
     const embedUrl = match ? `https://www.youtube.com/embed/${match[1]}?rel=0` : null;
 
@@ -155,7 +155,9 @@ function BlogSection({ title, content }: { title: string; content?: PortableText
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   try {
-    const blogNumber = Number(params.blogNumber);
+    const resolvedParams = await params;
+    const blogNumber = Number(resolvedParams.blogNumber);
+    
     if (isNaN(blogNumber)) {
       return notFound();
     }
@@ -186,10 +188,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function BlogDetailPage({ params }: PageProps) {
-  const blogNumber = Number(params.blogNumber);
-  if (isNaN(blogNumber)) notFound();
-
   try {
+    const resolvedParams = await params;
+    const blogNumber = Number(resolvedParams.blogNumber);
+    
+    if (isNaN(blogNumber)) notFound();
+
     const blog = await sanityClient.fetch<Blog>(
       `*[_type == "blog" && blogNumber == $blogNumber][0]{
         _id,
