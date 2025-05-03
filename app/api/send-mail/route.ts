@@ -1,82 +1,57 @@
+import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
-export const config = {
-  maxDuration: 10 // 10 seconds for Hobby plan
-};
-// Add to api/send-mail/route.ts
-console.log('SMTP Config:', {
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  user: process.env.EMAIL_USER?.slice(0,3)+'...' 
-});
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, email, subject, message } = body;
-    
-    console.log('Received form data:', { name, email, subject });
+    // Parse the request body
+    const { name, email, subject, message } = await req.json();
 
-    // Validate environment variables
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      throw new Error('Email credentials not configured');
-    }
-
+    // Validate the request data
     if (!name || !email || !subject || !message) {
-      return new Response(
-        JSON.stringify({ error: 'All fields are required' }), 
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      return NextResponse.json(
+        { error: 'Please fill in all fields' },
+        { status: 400 }
       );
     }
 
-    // Configure transporter
+    // Create a transporter with your email credentials
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      service: 'Gmail',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
-      }
+      },
     });
 
-    // Fixed HTML template (missing closing curly brace)
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px;">
-        <h2 style="color: #0891b2;">New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-        <p><strong>Subject:</strong> ${subject}</p>
-        <h3>Message:</h3>
-        <p>${message.replace(/\n/g, '<br>')}</p>
-      </div>
-    `;
-
+    // Email options
     const mailOptions = {
-      from: `"Contact Form" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER, // Send to yourself
       replyTo: email,
-      to: process.env.EMAIL_USER,
       subject: `Contact Form: ${subject}`,
-      text: `From: ${name}\nEmail: ${email}\n\n${message}`,
-      html: htmlContent,
+      html: `
+        <h3>New Contact Form Submission</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>Message:</strong></p>
+        <p>${message.replace(/\n/g, '<br>')}</p>
+      `,
     };
 
-    await transporter.verify();
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Message sent:', info.messageId);
+    // Send the email
+    await transporter.sendMail(mailOptions);
 
-    return new Response(
-      JSON.stringify({ success: true, message: 'Email sent successfully' }), 
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    // Return success response
+    return NextResponse.json(
+      { success: true, message: 'Email sent successfully' },
+      { status: 200 }
     );
-
-  } catch (error: any) {
-    console.error('API Error:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: error.message || 'Failed to process request',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      }), 
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return NextResponse.json(
+      { error: 'Failed to send email' },
+      { status: 500 }
     );
   }
 }
