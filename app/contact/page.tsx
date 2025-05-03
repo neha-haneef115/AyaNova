@@ -65,12 +65,12 @@ const ContactUs: React.FC = () => {
           message: '',
         });
         
-        // Reset success message after 5 seconds
+       
         setTimeout(() => {
           setSubmitSuccess(false);
         }, 5000);
       } else {
-        // Handle error response
+       
         try {
           const errorData = await response.json();
           throw new Error(errorData.error || `Error: ${response.status}`);

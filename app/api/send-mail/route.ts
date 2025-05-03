@@ -7,7 +7,7 @@ export const config = {
 console.log('SMTP Config:', {
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
-  user: process.env.EMAIL_USER?.slice(0,3)+'...' // Partial email for security
+  user: process.env.EMAIL_USER?.slice(0,3)+'...' 
 });
 export async function POST(request: Request) {
   try {
