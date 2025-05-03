@@ -1,5 +1,14 @@
 import nodemailer from 'nodemailer';
 
+export const config = {
+  maxDuration: 10 // 10 seconds for Hobby plan
+};
+// Add to api/send-mail/route.ts
+console.log('SMTP Config:', {
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  user: process.env.EMAIL_USER?.slice(0,3)+'...' // Partial email for security
+});
 export async function POST(request: Request) {
   try {
     const body = await request.json();
