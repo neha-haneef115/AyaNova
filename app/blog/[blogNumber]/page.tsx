@@ -141,7 +141,7 @@ function BlogSection({ title, content }: { title: string; content?: PortableText
   if (!content || content.length === 0) return null;
 
   return (
-    <section className="bg-white p-6 rounded-xl border border-gray-100 hover:border-blue-100 transition-colors duration-300">
+    <section className="bg-white p-3 rounded-xl border border-gray-100 hover:border-blue-100 transition-colors duration-300">
       <div className="flex items-center mb-6">
         <div className="h-10 w-1 bg-amber-600 rounded-full mr-4"></div>
         <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
@@ -272,7 +272,7 @@ export default async function BlogDetailPage({ params }: PageProps) {
               </div>
             </header>
 
-            <article className="px-6 py-8 sm:px-8 sm:py-10">
+            <article className="px-3 py-5 sm:px-8 sm:py-10">
               <QuranicVerseSection arabicAyah={blog.arabicAyah} translation={blog.translation} />
 
               {blog.media && blog.media.length > 0 && (

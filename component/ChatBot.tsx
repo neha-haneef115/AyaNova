@@ -16,12 +16,9 @@ const TarsChat: React.FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
-  const dragHandleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
@@ -37,41 +34,6 @@ const TarsChat: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
-
-  useEffect(() => {
-    if (!isOpen || !isMobile || !chatContainerRef.current || !dragHandleRef.current) return;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (dragHandleRef.current?.contains(e.target as Node)) {
-        setIsDragging(true);
-        e.preventDefault();
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isDragging) return;
-      const touch = e.touches[0];
-      setPosition({
-        x: Math.min(0, touch.clientX - window.innerWidth + 100),
-        y: Math.min(0, touch.clientY - window.innerHeight + 100)
-      });
-      e.preventDefault();
-    };
-
-    const handleTouchEnd = () => {
-      setIsDragging(false);
-    };
-
-    document.addEventListener('touchstart', handleTouchStart, { passive: false });
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
-
-    return () => {
-      document.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isDragging, isOpen, isMobile]);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim()) return;
@@ -112,11 +74,11 @@ const TarsChat: React.FC = () => {
 
   const toggleChat = useCallback(() => {
     setIsOpen(prev => !prev);
-    setPosition({ x: 0, y: 0 });
   }, []);
 
   return (
-    <div className="fixed bottom-34 right-20 sm:bottom-6 sm:right-6 z-50">
+    <div className={`
+      fixed z-50 ${isMobile ? 'bottom-40 right-20' : 'bottom-10 right-6'} `}>
       <button 
         onClick={toggleChat}
         className={`
@@ -146,21 +108,13 @@ const TarsChat: React.FC = () => {
         <div 
           ref={chatContainerRef}
           className={`
-            fixed ${isMobile ? 'bottom-30 right-16' : 'bottom-34 right-18'}
-            ${isMobile ? 'w-[85vw] max-w-[320px] h-[60vh]' : 'w-96 h-[500px]'}
+            fixed ${isMobile ? 'bottom-55 right-20' : 'bottom-26 right-6'}
+            ${isMobile ? 'w-[90vw] max-w-[320px] h-[60vh]' : 'w-96 h-[500px]'}
             bg-gray-900 shadow-2xl rounded-lg border border-indigo-700 flex flex-col
-            transition-transform duration-300
-            ${isDragging ? 'cursor-grabbing' : 'cursor-default'}
+            transition-all duration-300 ease-in-out
           `}
-          style={{
-            transform: isMobile ? `translate(${position.x}px, ${position.y}px)` : 'none',
-            touchAction: 'none'
-          }}
         >
-          <div 
-            ref={dragHandleRef}
-            className={`bg-indigo-700 p-3 flex items-center border-b border-indigo-800 ${isMobile ? 'cursor-move' : ''}`}
-          >
+          <div className="bg-indigo-700 p-3 flex items-center border-b border-indigo-800 rounded-t-lg">
             <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-indigo-400 flex-shrink-0">
               <Image src={Tars} width={32} height={32} alt="TARS Avatar" className="w-full h-full object-cover" />
             </div>
@@ -174,6 +128,7 @@ const TarsChat: React.FC = () => {
             <button 
               onClick={toggleChat}
               className="ml-2 text-white hover:text-indigo-300 transition-colors"
+              aria-label="Close chat"
             >
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -193,7 +148,7 @@ const TarsChat: React.FC = () => {
           </div>
 
           <div 
-            className="flex-1 p-3 overflow-y-auto space-y-2"
+            className="flex-1 p-3 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-indigo-700 scrollbar-track-gray-800"
             style={{
               background: 'linear-gradient(to bottom, #0f172a, #1e293b)',
               backgroundImage: 'radial-gradient(white, rgba(255,255,255,0.2) 1px, transparent 1px)',
@@ -201,7 +156,7 @@ const TarsChat: React.FC = () => {
             }}
           >
             {messages.map((msg, index) => (
-              <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}>
                 {msg.sender === 'bot' && (
                   <div className="w-7 h-7 rounded-full overflow-hidden border border-indigo-500 flex-shrink-0 mr-2">
                     <Image src={Tars} width={28} height={28} alt="TARS" className="w-full h-full object-cover" />
@@ -209,10 +164,10 @@ const TarsChat: React.FC = () => {
                 )}
                 <div
                   className={`
-                    max-w-[85%] p-2 rounded-lg text-sm
+                    max-w-[85%] p-3 rounded-lg text-sm
                     ${msg.sender === 'user' 
-                      ? 'bg-indigo-700 text-white' 
-                      : 'bg-gray-800 text-gray-100 border border-indigo-900'
+                      ? 'bg-indigo-700 text-white rounded-tr-none' 
+                      : 'bg-gray-800 text-gray-100 border border-indigo-900 rounded-tl-none'
                     }
                   `}
                 >
@@ -221,16 +176,16 @@ const TarsChat: React.FC = () => {
               </div>
             ))}
             {isTyping && (
-              <div className="flex justify-start">
+              <div className="flex justify-start animate-fadeIn">
                 <div className="w-7 h-7 rounded-full overflow-hidden border border-indigo-500 flex-shrink-0 mr-2">
                   <Image src={Tars} width={28} height={28} alt="TARS" className="w-full h-full object-cover" />
                 </div>
-                <div className="bg-gray-800 text-gray-100 border border-indigo-900 p-2 rounded-lg max-w-[85%]">
-                  <div className="flex space-x-1">
-                    {[0, 0.2, 0.4].map(delay => (
+                <div className="bg-gray-800 text-gray-100 border border-indigo-900 p-3 rounded-lg rounded-tl-none max-w-[85%]">
+                  <div className="flex space-x-2">
+                    {[0, 0.3, 0.6].map(delay => (
                       <div 
                         key={delay} 
-                        className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"
                         style={{ animationDelay: `${delay}s` }}
                       />
                     ))}
@@ -241,20 +196,22 @@ const TarsChat: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="bg-gray-800 p-2 border-t border-indigo-700">
+          <div className="bg-gray-800 p-3 border-t border-indigo-700 rounded-b-lg">
             <div className="flex">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="flex-1 p-2 px-3 bg-gray-700 text-gray-100 rounded-l-lg outline-none border border-indigo-700 focus:border-indigo-500 text-sm"
+                className="flex-1 p-2 px-4 bg-gray-700 text-gray-100 rounded-l-lg outline-none border border-indigo-700 focus:border-indigo-500 text-sm"
                 placeholder="Type your message..."
+                aria-label="Chat message"
               />
               <button 
                 onClick={sendMessage}
                 disabled={!input.trim()}
-                className="bg-indigo-700 text-white px-3 py-2 rounded-r-lg transition-colors duration-300 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-indigo-700 text-white px-4 py-2 rounded-r-lg transition-colors duration-300 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                aria-label="Send message"
               >
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
@@ -272,7 +229,7 @@ const TarsChat: React.FC = () => {
                 </svg>
               </button>
             </div>
-            <div className="text-xs text-gray-500 mt-1 flex justify-between items-center">
+            <div className="text-xs text-gray-400 mt-2 flex justify-between items-center">
               <span>Powered by AyaNova AI</span>
               <span className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer">Help</span>
             </div>
