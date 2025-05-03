@@ -1,90 +1,14 @@
 "use client"
-import React, { useState } from 'react';
-import type { ChangeEvent, FormEvent } from 'react';
+import React from 'react';
+import { useForm, ValidationError } from '@formspree/react';
 import Header from '@/component/Header';
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaPaperPlane, FaLinkedin, FaGithub, FaBehance } from 'react-icons/fa';
 import Link from 'next/link';
 import Footer from '@/component/Footer';
 import Spinner from '@/component/Spinner';
 
-interface FormData {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-}
-
 const ContactUs: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-  
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value
-    }));
-  };
-  
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitError(null);
-  
-    try {
-      // Clear any previous messages
-      setSubmitSuccess(false);
-      setSubmitError(null);
-      
-      const response = await fetch('/api/send-mail', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      
-      // Handle the response
-      if (response.ok) {
-        // Try to parse as JSON, but don't fail if it's not JSON
-        const data = await response.json().catch(() => ({ success: true }));
-        
-        setSubmitSuccess(true);
-        setFormData({
-          name: '',
-          email: '',
-          subject: '',
-          message: '',
-        });
-        
-       
-        setTimeout(() => {
-          setSubmitSuccess(false);
-        }, 5000);
-      } else {
-       
-        try {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Error: ${response.status}`);
-        } catch (jsonError) {
-          throw new Error(`Failed to send message. Status: ${response.status}`);
-        }
-      }
-    } catch (error) {
-      console.error('Submit error:', error);
-      setSubmitError(error instanceof Error ? error.message : 'An unexpected error occurred');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const [state, handleSubmit] = useForm("xqaqpgnw"); // Your Formspree form ID
 
   return (
     <div className='bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900'>
@@ -117,99 +41,94 @@ const ContactUs: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           <div className="md:col-span-3 bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-cyan-900">
             <h2 className="text-2xl font-bold mb-6 text-gray-100">Send a Message</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label htmlFor="name" className="block text-gray-300 mb-2">Your Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
-                  required
-                  disabled={isSubmitting}
-                />
+            
+            {state.succeeded ? (
+              <div className="p-4 bg-emerald-900/50 border border-emerald-700 rounded-lg text-emerald-300 animate-fade-in flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>Your message has been sent successfully! I'll get back to you as soon as possible.</span>
               </div>
-              
-              <div className="mb-4">
-                <label htmlFor="email" className="block text-gray-300 mb-2">Your Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="subject" className="block text-gray-300 mb-2">Subject</label>
-                <input
-                  type="text"
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-              
-              <div className="mb-6">
-                <label htmlFor="message" className="block text-gray-300 mb-2">Your Message</label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  rows={5}
-                  className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
-                  required
-                  disabled={isSubmitting}
-                ></textarea>
-              </div>
-              
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300 flex items-center justify-center shadow-lg disabled:opacity-70"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Spinner />
-                    <span className="ml-2">Sending...</span>
-                  </>
-                ) : (
-                  <>
-                    <FaPaperPlane className="mr-2" />
-                    Send Message
-                  </>
+            ) : (
+              <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                  <label htmlFor="name" className="block text-gray-300 mb-2">Your Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
+                    required
+                    disabled={state.submitting}
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="email" className="block text-gray-300 mb-2">Your Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
+                    required
+                    disabled={state.submitting}
+                  />
+                  <ValidationError prefix="Email" field="email" errors={state.errors} className="text-red-400 mt-1" />
+                </div>
+                
+                <div className="mb-4">
+                  <label htmlFor="subject" className="block text-gray-300 mb-2">Subject</label>
+                  <input
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
+                    required
+                    disabled={state.submitting}
+                  />
+                </div>
+                
+                <div className="mb-6">
+                  <label htmlFor="message" className="block text-gray-300 mb-2">Your Message</label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows={5}
+                    className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
+                    required
+                    disabled={state.submitting}
+                  ></textarea>
+                  <ValidationError prefix="Message" field="message" errors={state.errors} className="text-red-400 mt-1" />
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={state.submitting}
+                  className="bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300 flex items-center justify-center shadow-lg disabled:opacity-70"
+                >
+                  {state.submitting ? (
+                    <>
+                      <Spinner />
+                      <span className="ml-2">Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaPaperPlane className="mr-2" />
+                      Send Message
+                    </>
+                  )}
+                </button>
+                
+                {state.errors && Object.keys(state.errors).length > 0 && (
+                  <div className="mt-4 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-300 animate-fade-in flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    <span>There was a problem sending your message. Please try again.</span>
+                  </div>
                 )}
-              </button>
-              
-              {submitSuccess && (
-                <div className="mt-4 p-4 bg-emerald-900/50 border border-emerald-700 rounded-lg text-emerald-300 animate-fade-in flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span>Your message has been sent successfully! I'll get back to you as soon as possible.</span>
-                </div>
-              )}
-              
-              {submitError && (
-                <div className="mt-4 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-300 animate-fade-in flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                  <span>{submitError}</span>
-                </div>
-              )}
-            </form>
+              </form>
+            )}
           </div>
           
           {/* Contact Info */}
