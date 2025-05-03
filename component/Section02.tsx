@@ -73,7 +73,6 @@ export default function Section02() {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const scrollTimeout = useRef<any>(null);
   
-  // Check if device is mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -87,7 +86,6 @@ export default function Section02() {
     };
   }, []);
 
-  // Handle navigation to previous section
   useEffect(() => {
     if (selectedIndex === 0) {
       const section01 = document.getElementById("section01");
@@ -97,7 +95,6 @@ export default function Section02() {
     }
   }, [selectedIndex]);
 
-  // Function to check if element is in viewport
   const isInViewport = useCallback((element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
     return (
@@ -106,7 +103,6 @@ export default function Section02() {
     );
   }, []);
 
-  // Function to navigate between items
   const navigateItems = useCallback((direction: 'up' | 'down') => {
     if (isScrolling) return;
     
@@ -124,7 +120,6 @@ export default function Section02() {
       if (selectedIndex < celestialObjects.length - 1) {
         setSelectedIndex(selectedIndex + 1);
       } else if (selectedIndex === celestialObjects.length - 1) {
-        // Navigate to next section if at last item
         const section03 = document.getElementById("section03");
         if (section03) {
           section03.scrollIntoView({ behavior: "smooth" });
@@ -134,7 +129,6 @@ export default function Section02() {
       if (selectedIndex > 0) {
         setSelectedIndex(selectedIndex - 1);
       } else if (selectedIndex === 0) {
-        // Navigate to previous section if at first item
         const section01 = document.getElementById("section01");
         if (section01) {
           section01.scrollIntoView({ behavior: "smooth" });
@@ -143,7 +137,6 @@ export default function Section02() {
     }
   }, [selectedIndex, isScrolling]);
 
-  // Set up wheel event listener
   useEffect(() => {
     const handleScroll = (e: WheelEvent) => {
       if (sectionRef.current && isInViewport(sectionRef.current)) {
@@ -159,7 +152,6 @@ export default function Section02() {
     };
   }, [navigateItems, isInViewport]);
 
-  // Set up keyboard event listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (sectionRef.current && isInViewport(sectionRef.current)) {
@@ -180,7 +172,6 @@ export default function Section02() {
     };
   }, [navigateItems, isInViewport]);
 
-  // Set up touch event listeners for mobile
   useEffect(() => {
     const handleTouchStart = (e: TouchEvent) => {
       if (sectionRef.current && isInViewport(sectionRef.current)) {
@@ -194,10 +185,9 @@ export default function Section02() {
         const touchEndY = e.touches[0].clientY;
         const diff = touchStartY - touchEndY;
         
-        // Only trigger if touch movement is significant
         if (Math.abs(diff) > 50) {
           navigateItems(diff > 0 ? 'down' : 'up');
-          setTouchStartY(null); // Reset to prevent multiple triggers
+          setTouchStartY(null);
         }
       }
     };
@@ -217,14 +207,12 @@ export default function Section02() {
     };
   }, [touchStartY, navigateItems, isInViewport]);
 
-  // Clean up timeouts
   useEffect(() => {
     return () => {
       if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
     };
   }, []);
 
-  // Video management
   useEffect(() => {
     videoRefs.current = videoRefs.current.slice(0, celestialObjects.length);
     
@@ -250,7 +238,6 @@ export default function Section02() {
   const handleScrollDown = () => navigateItems('down');
   const handleScrollUp = () => navigateItems('up');
 
-  // Mobile menu for celestial objects
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   
   return (
@@ -260,12 +247,10 @@ export default function Section02() {
       className="relative w-full h-screen bg-black text-white overflow-hidden"
       tabIndex={0}
     >
-      {/* Counter */}
       <div className="absolute top-4 left-4 bg-black/50 text-white px-2 py-1 rounded-md z-50 text-xs sm:text-sm">
         Item: {selectedIndex + 1}/{celestialObjects.length}
       </div>
 
-      {/* Mobile Menu Button */}
       <div className="md:hidden absolute top-4 right-4 z-50">
         <button 
           onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -275,9 +260,8 @@ export default function Section02() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {isMobile && showMobileMenu && (
-        <div className="md:hidden fixed inset-0 bg-black/90 z-40 flex flex-col justify-center items-center">
+        <div className="md:hidden fixed inset-0 bg-black/90 z-40 flex flex-col justify-space-evenly items-center">
           <div className="w-full max-h-[80vh] overflow-y-auto p-4 flex flex-col gap-4">
             {celestialObjects.map((obj, index) => (
               <div
@@ -318,7 +302,6 @@ export default function Section02() {
         </div>
       )}
 
-      {/* Navigation Dots */}
       <div className="hidden md:flex absolute right-4 lg:right-8 top-1/2 transform -translate-y-1/2 flex-col gap-2 lg:gap-4 z-30">
         {celestialObjects.map((_, index) => (
           <button
@@ -332,7 +315,6 @@ export default function Section02() {
         ))}
       </div>
 
-      {/* Scroll Up Indicator */}
       {selectedIndex > 0 && (
         <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center z-30">
           <button 
@@ -345,9 +327,7 @@ export default function Section02() {
         </div>
       )}
 
-      {/* Main Content */}
       <div className="flex h-full w-full flex-col md:flex-row items-center justify-center">
-        {/* Left Side - Content */}
         <div className="w-full md:w-2/3 flex flex-col items-center justify-center px-4 md:px-12 h-full">
           {celestialObjects.map((obj, index) => (
             selectedIndex === index && (
@@ -385,7 +365,6 @@ export default function Section02() {
           ))}
         </div>
 
-        {/* Right Side - Navigation Menu */}
         <div className="hidden md:flex w-1/3 flex-col items-start justify-center gap-4 lg:gap-8 pl-4 lg:pl-12 pr-4 lg:pr-16">
           {celestialObjects.map((obj, index) => (
             <div
@@ -417,7 +396,6 @@ export default function Section02() {
         </div>
       </div>
 
-      {/* Scroll Down Indicator */}
       {selectedIndex < celestialObjects.length - 1 && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center z-30">
           <p className="text-gray-400 mb-2 text-xs sm:text-sm">Scroll to explore</p>

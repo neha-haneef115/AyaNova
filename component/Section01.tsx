@@ -106,18 +106,18 @@ const Section01 = () => {
       />
 
       <div className="absolute inset-0 flex flex-col justify-center items-center text-white text-center px-4 sm:px-8 md:px-12 lg:px-16">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white py-0 px-1 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-400 leading-tight max-w-5xl">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white py-0 px-1 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-400 leading-tight max-w-5xl">
           Exploring the Cosmos Through the Wisdom of the Quran
         </h1>
 
-        <p className="text-lg sm:text-xl md:text-2xl lg:text-[28px] mt-4 md:mt-7 max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
+        <p className="text-1xl sm:text-xl md:text-2xl lg:text-[28px] mt-4 md:mt-7 max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
           Every star, every galaxy, and every celestial body is a sign of Allah's creation. Explore
           the wonders of astronomy through divine revelation.
         </p>
 
         <div
           onClick={handleScrollToSection02}
-          className="absolute bottom-8 sm:bottom-10 md:bottom-12 lg:bottom-15 left-1/2 transform -translate-x-1/2 cursor-pointer"
+          className="absolute bottom-24 sm:bottom-10 md:bottom-12 lg:bottom-15 left-1/2 transform -translate-x-1/2 cursor-pointer"
         >
           <FaAngleDoubleDown className="h-8 w-8 md:h-10 md:w-10 lg:h-12 lg:w-12 animate-bounce text-white" />
         </div>

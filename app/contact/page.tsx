@@ -23,6 +23,7 @@ const ContactUs: React.FC = () => {
   
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -35,8 +36,11 @@ const ContactUs: React.FC = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError(null);
   
     try {
+      console.log('Submitting form data:', formData);
+      
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
@@ -44,26 +48,34 @@ const ContactUs: React.FC = () => {
         },
         body: JSON.stringify(formData),
       });
-  
-      if (response.ok) {
-        setSubmitSuccess(true);
-        setFormData({
-          name: '',
-          email: '',
-          subject: '',
-          message: '',
-        });
-  
-        // Reset success message after 3 seconds
-        setTimeout(() => {
-          setSubmitSuccess(false);
-        }, 3000);
-      } else {
-        const errorData = await response.json();
-        console.error('Error:', errorData.error);
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || `Server responded with status: ${response.status}`);
       }
-    } catch (_error) {
-      console.error('Error occurred during form submission');
+      
+      const data = await response.json().catch(() => {
+        console.error('Failed to parse response as JSON');
+        return { success: response.ok };
+      });
+  
+      setSubmitSuccess(true);
+      setFormData({
+        name: '',
+        email: '',
+        subject: '',
+        message: '',
+      });
+  
+      // Reset success message after 3 seconds
+      setTimeout(() => {
+        setSubmitSuccess(false);
+      }, 3000);
+    } catch (error) {
+      console.error('Error:', error);
+      setSubmitError(error instanceof Error ? error.message : 'An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -162,9 +174,16 @@ const ContactUs: React.FC = () => {
                   Your message has been sent successfully!
                 </div>
               )}
+              
+              {submitError && (
+                <div className="mt-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300">
+                  Error: {submitError}
+                </div>
+              )}
             </form>
           </div>
           
+          {/* Contact Info */}
           <div className="md:col-span-2 bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-cyan-900">
             <h2 className="text-2xl font-bold mb-6 text-gray-100">Connect With Me</h2>
             <p className="text-gray-400 mb-6">
@@ -187,54 +206,49 @@ const ContactUs: React.FC = () => {
                 <span className="text-gray-300">@neha-haneef115</span>
               </Link>
             </div>
-            
-            
           </div>
         </div>
       </div>
       
-        <div className="grid grid-cols-1 px-4 md:grid-cols-3 gap-5 mb-12">
-          {/* Contact Card 1 */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl shadow-lg text-center hover:shadow-xl transition-all duration-300 border border-cyan-900">
-            <div className="bg-slate-700 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
-              <FaEnvelope className="text-2xl text-cyan-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-200 mb-2">
-              Email
-            </h3>
-            <p className="text-cyan-400">
-              nehahaneef203@gmail.com
-            </p>
+      {/* Contact cards */}
+      <div className="grid grid-cols-1 px-4 md:grid-cols-3 gap-5 mb-12">
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl shadow-lg text-center hover:shadow-xl transition-all duration-300 border border-cyan-900">
+          <div className="bg-slate-700 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
+            <FaEnvelope className="text-2xl text-cyan-400" />
           </div>
-          
-          {/* Contact Card 2 */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl shadow-lg text-center hover:shadow-xl transition-all duration-300 border border-cyan-900">
-            <div className="bg-slate-700 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
-              <FaPhone className="text-2xl text-emerald-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-200 mb-2">
-              Phone
-            </h3>
-            <p className="text-emerald-400">
-              +923257220057
-            </p>
-          </div>
-          
-          {/* Contact Card 3 */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl shadow-lg text-center hover:shadow-xl transition-all duration-300 border border-cyan-900">
-            <div className="bg-slate-700 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
-              <FaMapMarkerAlt className="text-2xl text-amber-400" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-200 mb-2">
-              Location
-            </h3>
-            <p className="text-amber-400">
-            Karachi, PK
-            </p>
-          </div>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            Email
+          </h3>
+          <p className="text-cyan-400">
+            nehahaneef203@gmail.com
+          </p>
         </div>
-      {/* Contact Section */}
-    </div>
+        
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl shadow-lg text-center hover:shadow-xl transition-all duration-300 border border-cyan-900">
+          <div className="bg-slate-700 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
+            <FaPhone className="text-2xl text-emerald-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            Phone
+          </h3>
+          <p className="text-emerald-400">
+            +923257220057
+          </p>
+        </div>
+        
+        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl shadow-lg text-center hover:shadow-xl transition-all duration-300 border border-cyan-900">
+          <div className="bg-slate-700 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-inner">
+            <FaMapMarkerAlt className="text-2xl text-amber-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-200 mb-2">
+            Location
+          </h3>
+          <p className="text-amber-400">
+            Karachi, PK
+          </p>
+        </div>
+      </div>
+      
       <div className="bg-gradient-to-r from-cyan-900 to-emerald-900 py-12 rounded-t-3xl">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Looking Forward to Hearing From You</h2>
@@ -244,6 +258,7 @@ const ContactUs: React.FC = () => {
           </p>
         </div>
       </div>
+    </div>
     <Footer/>
     </div>
   );
