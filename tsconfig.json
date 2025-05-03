@@ -27,6 +27,6 @@
     "noFallthroughCasesInSwitch": false,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app.d.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app.d.ts", "app/api/send-mail/route.ts"],
   "exclude": ["node_modules"]
 }

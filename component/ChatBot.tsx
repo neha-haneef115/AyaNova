@@ -78,7 +78,7 @@ const TarsChat: React.FC = () => {
 
   return (
     <div className={`
-      fixed z-50 ${isMobile ? 'bottom-40 right-20' : 'bottom-10 right-6'} `}>
+      fixed z-50 ${isMobile ? 'bottom-35 right-20' : 'bottom-10 right-6'} `}>
       <button 
         onClick={toggleChat}
         className={`
@@ -108,7 +108,7 @@ const TarsChat: React.FC = () => {
         <div 
           ref={chatContainerRef}
           className={`
-            fixed ${isMobile ? 'bottom-55 right-20' : 'bottom-26 right-6'}
+            fixed ${isMobile ? 'bottom-50 right-20' : 'bottom-26 right-6'}
             ${isMobile ? 'w-[90vw] max-w-[320px] h-[60vh]' : 'w-96 h-[500px]'}
             bg-gray-900 shadow-2xl rounded-lg border border-indigo-700 flex flex-col
             transition-all duration-300 ease-in-out

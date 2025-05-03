@@ -5,6 +5,7 @@ import Header from '@/component/Header';
 import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaPaperPlane, FaLinkedin, FaGithub, FaBehance } from 'react-icons/fa';
 import Link from 'next/link';
 import Footer from '@/component/Footer';
+import Spinner from '@/component/Spinner';
 
 interface FormData {
   name: string;
@@ -39,9 +40,11 @@ const ContactUs: React.FC = () => {
     setSubmitError(null);
   
     try {
-      console.log('Submitting form data:', formData);
+      // Clear any previous messages
+      setSubmitSuccess(false);
+      setSubmitError(null);
       
-      const response = await fetch('/api/send-email', {
+      const response = await fetch('/api/send-mail', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,32 +52,34 @@ const ContactUs: React.FC = () => {
         body: JSON.stringify(formData),
       });
       
-      console.log('Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error || `Server responded with status: ${response.status}`);
+      // Handle the response
+      if (response.ok) {
+        // Try to parse as JSON, but don't fail if it's not JSON
+        const data = await response.json().catch(() => ({ success: true }));
+        
+        setSubmitSuccess(true);
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+        });
+        
+        // Reset success message after 5 seconds
+        setTimeout(() => {
+          setSubmitSuccess(false);
+        }, 5000);
+      } else {
+        // Handle error response
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Error: ${response.status}`);
+        } catch (jsonError) {
+          throw new Error(`Failed to send message. Status: ${response.status}`);
+        }
       }
-      
-      const data = await response.json().catch(() => {
-        console.error('Failed to parse response as JSON');
-        return { success: response.ok };
-      });
-  
-      setSubmitSuccess(true);
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
-      });
-  
-      // Reset success message after 3 seconds
-      setTimeout(() => {
-        setSubmitSuccess(false);
-      }, 3000);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Submit error:', error);
       setSubmitError(error instanceof Error ? error.message : 'An unexpected error occurred');
     } finally {
       setIsSubmitting(false);
@@ -83,6 +88,15 @@ const ContactUs: React.FC = () => {
 
   return (
     <div className='bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900'>
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
+      `}</style>
       <Header/>
     <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 min-h-screen py-8 text-gray-200">
       <div className="max-w-4xl mx-auto px-6 text-center mb-9">
@@ -114,6 +128,7 @@ const ContactUs: React.FC = () => {
                   onChange={handleChange}
                   className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -127,6 +142,7 @@ const ContactUs: React.FC = () => {
                   onChange={handleChange}
                   className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -140,6 +156,7 @@ const ContactUs: React.FC = () => {
                   onChange={handleChange}
                   className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               
@@ -153,6 +170,7 @@ const ContactUs: React.FC = () => {
                   rows={5}
                   className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:border-cyan-500 text-gray-200"
                   required
+                  disabled={isSubmitting}
                 ></textarea>
               </div>
               
@@ -161,7 +179,12 @@ const ContactUs: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-300 flex items-center justify-center shadow-lg disabled:opacity-70"
               >
-                {isSubmitting ? 'Sending...' : (
+                {isSubmitting ? (
+                  <>
+                    <Spinner />
+                    <span className="ml-2">Sending...</span>
+                  </>
+                ) : (
                   <>
                     <FaPaperPlane className="mr-2" />
                     Send Message
@@ -170,14 +193,20 @@ const ContactUs: React.FC = () => {
               </button>
               
               {submitSuccess && (
-                <div className="mt-4 p-3 bg-emerald-900/50 border border-emerald-700 rounded-lg text-emerald-300">
-                  Your message has been sent successfully!
+                <div className="mt-4 p-4 bg-emerald-900/50 border border-emerald-700 rounded-lg text-emerald-300 animate-fade-in flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Your message has been sent successfully! I'll get back to you as soon as possible.</span>
                 </div>
               )}
               
               {submitError && (
-                <div className="mt-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300">
-                  Error: {submitError}
+                <div className="mt-4 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-300 animate-fade-in flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span>{submitError}</span>
                 </div>
               )}
             </form>
@@ -191,17 +220,17 @@ const ContactUs: React.FC = () => {
             </p>
             
             <div className="space-y-4">
-              <Link href="https://www.behance.net/nehahaneef115" className="flex items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors duration-300">
+              <Link href="https://www.behance.net/nehahaneef115" target="_blank" rel="noopener noreferrer" className="flex items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors duration-300">
                 <FaBehance className="text-xl text-cyan-400 mr-3" />
                 <span className="text-gray-300">@nehahaneef115</span>
               </Link>
               
-              <Link href="https://www.linkedin.com/in/neha-haneef-299b40243/" className="flex items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors duration-300">
+              <Link href="https://www.linkedin.com/in/neha-haneef-299b40243/" target="_blank" rel="noopener noreferrer" className="flex items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors duration-300">
                 <FaLinkedin className="text-xl text-blue-400 mr-3" />
                 <span className="text-gray-300">@neha-haneef115</span>
               </Link>
               
-              <Link href="https://github.com/neha-haneef115" className="flex items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors duration-300">
+              <Link href="https://github.com/neha-haneef115" target="_blank" rel="noopener noreferrer" className="flex items-center p-3 bg-slate-700 rounded-lg hover:bg-slate-600 transition-colors duration-300">
                 <FaGithub className="text-xl text-gray-300 mr-3" />
                 <span className="text-gray-300">@neha-haneef115</span>
               </Link>
