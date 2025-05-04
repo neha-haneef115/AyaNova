@@ -69,6 +69,7 @@ export default function Section02() {
   const [videoLoaded, setVideoLoaded] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [isLastItemViewed, setIsLastItemViewed] = useState<boolean>(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const scrollTimeout = useRef<any>(null);
@@ -92,6 +93,11 @@ export default function Section02() {
       if (section01) {
         section01.style.display = "block";
       }
+    }
+    
+    // Track when the last item has been viewed
+    if (selectedIndex === celestialObjects.length - 1) {
+      setIsLastItemViewed(true);
     }
   }, [selectedIndex]);
 
@@ -119,7 +125,8 @@ export default function Section02() {
     if (direction === 'down') {
       if (selectedIndex < celestialObjects.length - 1) {
         setSelectedIndex(selectedIndex + 1);
-      } else if (selectedIndex === celestialObjects.length - 1) {
+      } else if (selectedIndex === celestialObjects.length - 1 && isLastItemViewed) {
+        // Only move to next section when last item has been viewed AND user scrolls again
         const section03 = document.getElementById("section03");
         if (section03) {
           section03.scrollIntoView({ behavior: "smooth" });
@@ -135,7 +142,7 @@ export default function Section02() {
         }
       }
     }
-  }, [selectedIndex, isScrolling]);
+  }, [selectedIndex, isScrolling, isLastItemViewed]);
 
   useEffect(() => {
     const handleScroll = (e: WheelEvent) => {
@@ -239,6 +246,9 @@ export default function Section02() {
   const handleScrollUp = () => navigateItems('up');
 
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  
+  // Add a visual indicator for mobile that shows when the user can scroll to next section
+  const isReadyForNextSection = isLastItemViewed && selectedIndex === celestialObjects.length - 1;
   
   return (
     <section
@@ -396,7 +406,17 @@ export default function Section02() {
         </div>
       </div>
 
-      {selectedIndex < celestialObjects.length - 1 && (
+      {isReadyForNextSection ? (
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center z-30">
+          <p className="text-gray-400 mb-2 text-xs sm:text-sm">Scroll to next section</p>
+          <button 
+            className="w-10 h-16 flex flex-col items-center justify-end pb-2 border-2 border-white rounded-full mx-auto cursor-pointer transition-all animate-pulse hover:bg-white/10"
+            onClick={handleScrollDown}
+          >
+            <FaChevronDown className="text-white animate-bounce" />
+          </button>
+        </div>
+      ) : selectedIndex < celestialObjects.length - 1 && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center z-30">
           <p className="text-gray-400 mb-2 text-xs sm:text-sm">Scroll to explore</p>
           <button 

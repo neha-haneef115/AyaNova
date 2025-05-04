@@ -8,7 +8,7 @@ import Footer from '@/component/Footer';
 import Spinner from '@/component/Spinner';
 
 const ContactUs: React.FC = () => {
-  const [state, handleSubmit] = useForm("xqaqpgnw"); // Your Formspree form ID
+  const [state, handleSubmit] = useForm("xqaqpgnw"); 
 
   return (
     <div className='bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900'>
